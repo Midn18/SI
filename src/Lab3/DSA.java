@@ -12,7 +12,7 @@ public class DSA {
     int keyLength;
     MessageDigest md;
 
-    BigInteger q, p, h, g, a, b, ps1, k, r, s;
+    BigInteger q, p, h, g, x, y, ps1, k, r, s, hash, w, u1, u2, v;
 
     Random random = new Random(1);
 
@@ -41,10 +41,10 @@ public class DSA {
         } while (temp3.equals(BigInteger.ONE));
         g = temp3;
         do {
-            a = new BigInteger(159, random);
-        } while (a.compareTo(q) > 0 && a.compareTo(BigInteger.ZERO) != 1);
-        b = g.modPow(a, p);
-        return new BigInteger[]{q, p, h, g, a, b};
+            x = new BigInteger(159, random);
+        } while (x.compareTo(q) > 0 && x.compareTo(BigInteger.ZERO) != 1);
+        y = g.modPow(x, p);
+        return new BigInteger[]{q, p, h, g, x, y};
     }
 
     public BigInteger[] sign(byte[] fileBytes) {
@@ -63,7 +63,7 @@ public class DSA {
         }
         while (r.equals(BigInteger.ZERO));
         while (s.equals(BigInteger.ZERO)) {
-            s = k.modInverse(q).multiply(hash.add(a.multiply(r))).mod(q);
+            s = k.modInverse(q).multiply(hash.add(x.multiply(r))).mod(q);
             k = new BigInteger(158, new Random());
         }
 
@@ -77,14 +77,14 @@ public class DSA {
             throw new RuntimeException(e);
         }
         md.update(bytes);
-        BigInteger hash = new BigInteger(1, md.digest());
-        BigInteger r = new BigInteger(rS);
-        BigInteger s = new BigInteger(sS);
+        hash = new BigInteger(1, md.digest());
+        r = new BigInteger(rS);
+        s = new BigInteger(sS);
 
-        BigInteger w = s.modInverse(q);
-        BigInteger u1 = hash.multiply(w).mod(q);
-        BigInteger u2 = r.multiply(w).mod(q);
-        BigInteger v = g.modPow(u1, p).multiply(b.modPow(u2, p)).mod(p).mod(q);
+        w = s.modInverse(q);
+        u1 = hash.multiply(w).mod(q);
+        u2 = r.multiply(w).mod(q);
+        v = g.modPow(u1, p).multiply(y.modPow(u2, p)).mod(p).mod(q);
         return v.equals(r);
     }
 }
